@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/pages/login_page.dart';
 
 void main() {
-  runApp(const IJudeApp());
+  runApp(const FixFlowApp());
 }
 
-class IJudeApp extends StatelessWidget {
-  const IJudeApp({super.key});
+class FixFlowApp extends StatelessWidget {
+  const FixFlowApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'FixFlow',
       debugShowCheckedModeBanner: false,
-      title: 'iJude',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00897B)),
-        useMaterial3: true,
-      ),
-      home: const LoginScreen(),
+      theme: AppTheme.lightTheme,
+      home: const LoginPage(), // Vamos criar este arquivo agora
     );
   }
 }
