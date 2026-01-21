@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
-import 'core/theme/app_theme.dart';
-import 'features/auth/presentation/pages/login_page.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:ijude_app/features/auth/presentation/pages/onboarding_page.dart';
 
 void main() {
-  runApp(const FixFlowApp());
+  runApp(const IJudeApp());
 }
 
-class FixFlowApp extends StatelessWidget {
-  const FixFlowApp({super.key});
+class IJudeApp extends StatelessWidget {
+  const IJudeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FixFlow',
+      title: 'iJude',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const LoginPage(), // Vamos criar este arquivo agora
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0F172A)),
+        textTheme: GoogleFonts.interTextTheme(),
+      ),
+      home: const OnboardingPage(),
     );
   }
 }
