@@ -1,1 +1,1 @@
-# Projeto iJude Marketplace
+# Projeto iJude app client
