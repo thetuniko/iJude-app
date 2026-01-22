@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ijude_app/features/auth/presentation/pages/home_page.dart';
 import 'register_page.dart'; // Importe local
 
 class LoginPage extends StatefulWidget {
@@ -52,13 +53,28 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 32),
               // Botão Entrar
               SizedBox(
-                width: double.infinity, height: 56,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F172A), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: const Text("Entrar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ),
+  width: double.infinity, 
+  height: 56,
+  child: ElevatedButton(
+    onPressed: () {
+      // --- MODO DE TESTE ---
+      // Navega direto para a Home e remove o Login da pilha (para não voltar ao clicar em voltar)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ServiceSelectionPage()), 
+        // OBS: Se você renomeou a classe para HomePage, use HomePage() aqui.
+      );
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF0F172A), // Navy
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+    child: const Text(
+      "Entrar", 
+      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+    ),
+  ),
+),
               const SizedBox(height: 24),
               // Link de Cadastro Corrigido
               Row(
