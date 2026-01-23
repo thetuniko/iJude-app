@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ijude_app/features/auth/presentation/pages/home_page.dart';
 import 'register_page.dart'; // Importe local
+import 'package:ijude_app/features/auth/presentation/pages/main_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -58,12 +59,10 @@ class _LoginPageState extends State<LoginPage> {
   child: ElevatedButton(
     onPressed: () {
       // --- MODO DE TESTE ---
-      // Navega direto para a Home e remove o Login da pilha (para não voltar ao clicar em voltar)
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ServiceSelectionPage()), 
-        // OBS: Se você renomeou a classe para HomePage, use HomePage() aqui.
-      );
+    Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => const MainScreen()),
+);
     },
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFF0F172A), // Navy
