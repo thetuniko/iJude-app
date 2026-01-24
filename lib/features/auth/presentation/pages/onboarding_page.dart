@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ijude_app/features/auth/presentation/pages/login_page.dart';
-// Certifique-se que este import está apontando para o arquivo correto no seu projeto
+import 'package:ijude_app/features/auth/presentation/pages/main_screen.dart';
+
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -14,7 +14,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // Definição das cores EXATAS do iJude
   static const Color iJudeNavy = Color(0xFF0F172A);
 
   final List<Map<String, String>> _onboardingData = [
@@ -35,10 +34,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
     },
   ];
 
-  void _navigateToLogin() {
+  // 2. ALTERADO: Função agora leva para a MainScreen (Home)
+  void _navigateToHome() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+      MaterialPageRoute(builder: (context) => const MainScreen()),
     );
   }
 
@@ -51,7 +51,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
         elevation: 0,
         actions: [
           TextButton(
-            onPressed: _navigateToLogin,
+            // 3. ALTERADO: Botão Pular chama a nova função
+            onPressed: _navigateToHome,
             child: const Text(
               "Pular",
               style: TextStyle(
@@ -81,7 +82,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 children: [
-                  // Indicadores (Pontinhos)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
@@ -91,14 +91,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                   const Spacer(),
                   
-                  // --- BOTÃO COM A COR CORRIGIDA ---
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
                         if (_currentPage == _onboardingData.length - 1) {
-                          _navigateToLogin();
+                          // 3. ALTERADO: Botão Começar chama a nova função
+                          _navigateToHome();
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 300),
@@ -107,9 +107,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        // Força a cor de fundo NAVY
                         backgroundColor: iJudeNavy, 
-                        // Força a cor do texto BRANCO
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -127,7 +125,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ),
                     ),
                   ),
-                  // ---------------------------------
                   
                   const SizedBox(height: 40),
                 ],
@@ -195,7 +192,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // Método auxiliar para pegar o ícone correto
   IconData _getIcon(int index) {
     switch (index) {
       case 0: return Icons.home_rounded;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ijude_app/features/auth/presentation/pages/home_page.dart';
 import 'register_page.dart'; // Importe local
 import 'package:ijude_app/features/auth/presentation/pages/main_screen.dart';
 
