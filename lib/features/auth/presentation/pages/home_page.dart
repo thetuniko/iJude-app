@@ -5,6 +5,7 @@ import 'package:ijude_app/features/auth/presentation/pages/features/notification
 // Se tiver a tela de pedido pronta, descomente a linha abaixo:
 // import '../../../service_request/presentation/pages/service_request_page.dart';
 
+
 class ServiceSelectionPage extends StatefulWidget {
   const ServiceSelectionPage({super.key});
 
@@ -14,6 +15,19 @@ class ServiceSelectionPage extends StatefulWidget {
 
 class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
   String? selectedCategory;
+  
+  // 1. Endereço selecionado atualmente
+  Map<String, String> currentAddress = {
+    "label": "Casa",
+    "address": "Rua das Flores, 123"
+  };
+
+  // 2. Lista de endereços de exemplo
+  final List<Map<String, String>> myAddresses = [
+    {"label": "Casa", "address": "Rua das Flores, 123"},
+    {"label": "Trabalho", "address": "Av. Paulista, 900 - Sala 4 - Bloco C"}, // Endereço longo para teste
+    {"label": "Casa de Praia", "address": "Rua das Palmeiras, 45"},
+  ];
 
   final List<Map<String, dynamic>> categories = [
     {"label": "Elétrica", "icon": Icons.bolt, "color": Colors.orange},
@@ -36,7 +50,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
       backgroundColor: const Color(0xFFF8FAFC),
       
       // BOTÃO SOS FLUTUANTE
-      // Ele desaparece se uma categoria estiver selecionada (para dar espaço ao botão Continuar)
       floatingActionButton: selectedCategory == null ? Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -60,7 +73,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Barra Superior (Endereço e Notificação)
+            // BARRA SUPERIOR (Com correção de overflow horizontal)
             _buildCustomAppBar(context),
             
             Expanded(
@@ -70,7 +83,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    // 2. Cabeçalho
+                    // Cabeçalho
                     Text(
                       "Olá, Antonio!",
                       style: GoogleFonts.inter(
@@ -87,7 +100,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                     
                     const SizedBox(height: 24),
                     
-                    // 3. Barra de Pesquisa
+                    // Barra de Pesquisa
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -122,7 +135,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                     
                     const SizedBox(height: 32),
                     
-                    // 4. Grid de Categorias
+                    // Grid de Categorias
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -137,11 +150,10 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                         return GestureDetector(
                           onTap: () {
                             setState(() {
-                              // LÓGICA DE TOGGLE (MARCAR/DESMARCAR)
                               if (selectedCategory == cat['label']) {
-                                selectedCategory = null; // Desmarca se já estava selecionado
+                                selectedCategory = null; 
                               } else {
-                                selectedCategory = cat['label']; // Seleciona o novo
+                                selectedCategory = cat['label'];
                               }
                             });
                           },
@@ -174,11 +186,11 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
               ),
             ),
 
-            // 5. Botão Continuar Animado
+            // Botão Continuar Animado
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
-              height: selectedCategory != null ? 100 : 0, // Cresce ou diminui
+              height: selectedCategory != null ? 100 : 0, 
               child: selectedCategory != null ? Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: SizedBox(
@@ -186,8 +198,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () {
-                      print("Indo para detalhes de: $selectedCategory");
-                      // Navigator.push(context, MaterialPageRoute(builder: (_) => ServiceRequestPage(...)));
+                      debugPrint("Indo para detalhes de: $selectedCategory no endereço ${currentAddress['address']}");
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: iJudeNavy,
@@ -212,37 +223,64 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     );
   }
 
-  // Widget da Barra Superior
+  // --- MÉTODOS AUXILIARES ---
+
+  // 1. BARRA SUPERIOR (Com correção de Overflow Horizontal)
   Widget _buildCustomAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.location_on, color: Color(0xFF2563EB), size: 24),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // LADO ESQUERDO: ENDEREÇO (Expandido para ocupar o espaço disponível)
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showAddressSelectionModal(context),
+              child: Row(
                 children: [
-                  Text("Seu endereço", style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B))),
-                  Row(
-                    children: [
-                      Text("Rua das Flores, 123", style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
-                      const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF0F172A)),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.location_on, color: Color(0xFF2563EB), size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // O Expanded aqui garante que o texto não empurre o ícone da direita para fora
+                  Expanded( 
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentAddress['label'] ?? "Localização", 
+                          style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B))
+                        ),
+                        Row(
+                          children: [
+                            // Flexible permite que o texto encolha se necessário
+                            Flexible( 
+                              child: Text(
+                                currentAddress['address']!, 
+                                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                                overflow: TextOverflow.ellipsis, // Adiciona '...' se for muito longo
+                                maxLines: 1,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF0F172A)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ],
+            ),
           ),
           
-          // Lado Direito: Notificação Clicável
+          const SizedBox(width: 16), // Espaço entre endereço e notificação
+
+          // LADO DIREITO: NOTIFICAÇÃO (Tamanho fixo)
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -269,7 +307,91 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     );
   }
 
-  // Função para abrir o modal SOS
+  // 2. MODAL DE SELEÇÃO DE ENDEREÇO (Com correção de Overflow Vertical)
+  void _showAddressSelectionModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Permite altura customizada
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        // SingleChildScrollView previne erro de tela pequena
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 24, 
+              right: 24, 
+              top: 24, 
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                ),
+                const SizedBox(height: 24),
+                
+                Text("Onde será o serviço?", style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                const SizedBox(height: 16),
+                
+                ...myAddresses.map((addr) {
+                  final isSelected = currentAddress['address'] == addr['address'];
+                  return ListTile(
+                    onTap: () {
+                      setState(() => currentAddress = addr);
+                      Navigator.pop(context);
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF2563EB).withValues(alpha: 0.1) : const Color(0xFFF1F5F9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isSelected ? Icons.check_circle : Icons.location_on_outlined,
+                        color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                    title: Text(addr['label']!, style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                    subtitle: Text(addr['address']!, style: GoogleFonts.inter(color: const Color(0xFF64748B))),
+                    trailing: isSelected ? const Icon(Icons.check, color: Color(0xFF2563EB)) : null,
+                  );
+                }),
+                
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ir para cadastro de endereço...")));
+                    },
+                    icon: const Icon(Icons.add, color: Color(0xFF2563EB)),
+                    label: Text("Cadastrar novo endereço", style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF2563EB)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                // Espaço extra seguro
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 3. MODAL DE SOS
   void _showSOSModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -281,7 +403,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
   }
 }
 
-// Conteúdo do Modal SOS
+// 4. WIDGET CONTEÚDO SOS (Externo para manter código limpo)
 class _SOSContent extends StatelessWidget {
   const _SOSContent();
 

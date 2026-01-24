@@ -1,46 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class NotificationsPage extends StatelessWidget {
+class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
   @override
+  State<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends State<NotificationsPage> {
+  // 1. TODAS INICIAM COMO NÃO LIDAS (isUnread: true)
+  List<Map<String, dynamic>> notifications = [
+    {
+      "title": "Profissional a caminho!",
+      "body": "O eletricista João Carlos está indo para o seu endereço.",
+      "time": "2 min atrás",
+      "type": "order",
+      "isUnread": true, 
+    },
+    {
+      "title": "Orçamento Recebido",
+      "body": "Você recebeu uma nova proposta para o serviço de Pintura.",
+      "time": "1 hora atrás",
+      "type": "offer",
+      "isUnread": true,
+    },
+    {
+      "title": "Pagamento Aprovado",
+      "body": "Seu pagamento de R\$ 150,00 foi confirmado com sucesso.",
+      "time": "Ontem",
+      "type": "payment",
+      "isUnread": true, // Mudado para true
+    },
+    {
+      "title": "Bem-vindo ao iJude!",
+      "body": "Complete seu perfil para ter mais chances de conseguir bons profissionais.",
+      "time": "3 dias atrás",
+      "type": "system",
+      "isUnread": true, // Mudado para true
+    },
+  ];
+
+  // Função para limpar tudo
+  void _clearNotifications() {
+    setState(() {
+      notifications.clear();
+    });
+  }
+
+  // 2. NOVA FUNÇÃO: Marcar apenas uma como lida ao clicar
+  void _markAsRead(int index) {
+    setState(() {
+      notifications[index]['isUnread'] = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Cores do iJude
     const Color iJudeNavy = Color(0xFF0F172A);
     const Color iJudeBackground = Color(0xFFF8FAFC);
-
-    // Mock de dados para visualizar o design
-    final List<Map<String, dynamic>> notifications = [
-      {
-        "title": "Profissional a caminho!",
-        "body": "O eletricista João Carlos está indo para o seu endereço.",
-        "time": "2 min atrás",
-        "type": "order", // Tipo define o ícone
-        "isUnread": true,
-      },
-      {
-        "title": "Orçamento Recebido",
-        "body": "Você recebeu uma nova proposta para o serviço de Pintura.",
-        "time": "1 hora atrás",
-        "type": "offer",
-        "isUnread": true,
-      },
-      {
-        "title": "Pagamento Aprovado",
-        "body": "Seu pagamento de R\$ 150,00 foi confirmado com sucesso.",
-        "time": "Ontem",
-        "type": "payment",
-        "isUnread": false,
-      },
-      {
-        "title": "Bem-vindo ao iJude!",
-        "body": "Complete seu perfil para ter mais chances de conseguir bons profissionais.",
-        "time": "3 dias atrás",
-        "type": "system",
-        "isUnread": false,
-      },
-    ];
 
     return Scaffold(
       backgroundColor: iJudeBackground,
@@ -62,11 +80,13 @@ class NotificationsPage extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () {}, // Lógica futura: Marcar todas como lidas
+            onPressed: notifications.isNotEmpty ? _clearNotifications : null,
             child: Text(
               "Limpar",
               style: GoogleFonts.inter(
-                color: const Color(0xFF2563EB), // Azul iJude
+                color: notifications.isNotEmpty 
+                    ? const Color(0xFF2563EB) 
+                    : Colors.grey.shade400,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -80,7 +100,11 @@ class NotificationsPage extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               itemCount: notifications.length,
               itemBuilder: (context, index) {
-                return _NotificationCard(data: notifications[index]);
+                return _NotificationCard(
+                  data: notifications[index],
+                  // Passamos a função de marcar como lida para o card
+                  onTap: () => _markAsRead(index),
+                );
               },
             ),
     );
@@ -109,91 +133,99 @@ class NotificationsPage extends StatelessWidget {
 
 class _NotificationCard extends StatelessWidget {
   final Map<String, dynamic> data;
+  final VoidCallback onTap; // Recebe a ação de clique
 
-  const _NotificationCard({required this.data});
+  const _NotificationCard({
+    required this.data,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     const Color iJudeNavy = Color(0xFF0F172A);
     final bool isUnread = data['isUnread'];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isUnread ? Colors.white : const Color(0xFFF1F5F9), // Branco se não lido, cinza se lido
-        borderRadius: BorderRadius.circular(16),
-        border: isUnread ? Border.all(color: const Color(0xFFE2E8F0)) : null,
-        boxShadow: isUnread
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            : [],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Ícone Colorido
-          _buildIcon(data['type']),
-          const SizedBox(width: 16),
-          
-          // Textos
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        data['title'],
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: iJudeNavy,
+    // Envolvemos o Container em GestureDetector para detectar o toque
+    return GestureDetector(
+      onTap: onTap, 
+      child: AnimatedContainer( // Usamos AnimatedContainer para transição suave da cor
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          // Lógica visual: Se não lida = Branco, Se lida = Cinza (igual as ultimas do print)
+          color: isUnread ? Colors.white : const Color(0xFFF1F5F9), 
+          borderRadius: BorderRadius.circular(16),
+          border: isUnread ? Border.all(color: const Color(0xFFE2E8F0)) : null,
+          boxShadow: isUnread
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : [],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildIcon(data['type']),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          data['title'],
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: iJudeNavy,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
+                      // Bolinha vermelha só aparece se não lida
+                      if (isUnread)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    data['body'],
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF64748B),
+                      height: 1.4,
                     ),
-                    if (isUnread)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  data['body'],
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFF64748B),
-                    height: 1.4,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  data['time'],
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: const Color(0xFF94A3B8),
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 8),
+                  Text(
+                    data['time'],
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: const Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
