@@ -81,7 +81,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                   children: [
                     const SizedBox(height: 10),
                     Text(
-                      "Olá, Antonio!",
+                      "Olá, visitante!",
                       style: GoogleFonts.inter(
                         fontSize: 26, fontWeight: FontWeight.w800, color: iJudeNavy
                       ),
@@ -199,7 +199,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                         Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const CategorySelectionPage(),
+                            pageBuilder: (context, animation, secondaryAnimation) => const CategorySelectionPage(),
                             transitionDuration: Duration.zero,
                             reverseTransitionDuration: Duration.zero,
                           ),

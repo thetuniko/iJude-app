@@ -1,4 +1,4 @@
-import '../models/service_option.dart'; // <--- Esse import não pode estar vermelho
+import '../models/service_option.dart';
 
 class MockServiceRepository {
   final List<ServiceOption> _allOptions = [

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -216,7 +217,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
               height: 56,
               child: ElevatedButton(
                 onPressed: () {
-                   print("Indo para Passo 4 (Agendamento)");
+                   if (kDebugMode) {
+                     print("Indo para Passo 4 (Agendamento)");
+                   }
                    // Navigator.push...
                 },
                 style: ElevatedButton.styleFrom(
