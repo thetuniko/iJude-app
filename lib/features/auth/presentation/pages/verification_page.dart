@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-// IMPORTANTE: Ajuste este caminho se sua MainScreen estiver em outra pasta
-import 'main_screen.dart'; 
+
+import 'terms_page.dart'; // <--- Importação necessária para o novo fluxo
+import '../../../../core/api_config.dart'; // <--- Configuração de API central [cite: 13]
 
 class VerificationPage extends StatefulWidget {
   final String phone;
@@ -30,10 +30,10 @@ class _VerificationPageState extends State<VerificationPage> {
 
     setState(() => _isLoading = true);
 
-    final baseUrl = kIsWeb ? 'http://localhost:3000' : 'http://10.0.2.2:3000';
-    final url = Uri.parse('$baseUrl/client/verify');
+    // Endpoint de verificação configurado no ApiConfig [cite: 13, 21]
+    final url = Uri.parse('${ApiConfig.baseUrl}/client/verify');
     
-    // Limpa o telefone para garantir que bate com o banco
+    // Limpeza de caracteres não numéricos do telefone [cite: 72]
     final cleanPhone = widget.phone.replaceAll(RegExp(r'[^0-9]'), '');
 
     try {
@@ -48,32 +48,33 @@ class _VerificationPageState extends State<VerificationPage> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         if (mounted) {
-          // --- 1. MENSAGEM DE SUCESSO (VERDE) ---
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Cadastro realizado com sucesso!"), 
-              backgroundColor: Colors.green, // Cor de êxito
+              content: Text("Conta verificada com sucesso!"), 
+              backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
           );
 
-          // --- 2. NAVEGAÇÃO PARA MAIN SCREEN ---
-          // Aguarda um pouquinho para o usuário ver a mensagem
           await Future.delayed(const Duration(seconds: 1)); 
           
           if (mounted) {
+            // CORREÇÃO DE FLUXO: Agora redireciona para a TermsPage 
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const MainScreen()),
-              (route) => false, // Remove todas as telas anteriores (Login/Cadastro)
+              MaterialPageRoute(builder: (context) => const TermsPage()),
+              (route) => false, // Impede o usuário de voltar para esta tela
             );
           }
         }
       } else {
         if (mounted) {
+          final responseData = jsonDecode(response.body);
+          final msg = responseData['message'] ?? "Código inválido ou expirado!";
+          
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Código inválido ou expirado!"), 
+            SnackBar(
+              content: Text(msg), 
               backgroundColor: Colors.red
             ),
           );
@@ -86,17 +87,19 @@ class _VerificationPageState extends State<VerificationPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tema dos quadradinhos (Design Clean)
+    // Definição da cor primária do projeto iJude [cite: 19]
+    const Color iJudeNavy = Color(0xFF0F172A);
+
     final defaultPinTheme = PinTheme(
       width: 50,
       height: 55,
-      textStyle: GoogleFonts.inter(fontSize: 22, color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
+      textStyle: GoogleFonts.inter(fontSize: 22, color: iJudeNavy, fontWeight: FontWeight.w600),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -105,7 +108,7 @@ class _VerificationPageState extends State<VerificationPage> {
     );
 
     final focusedPinTheme = defaultPinTheme.copyDecorationWith(
-      border: Border.all(color: const Color(0xFF0F172A), width: 1.5),
+      border: Border.all(color: iJudeNavy, width: 1.5),
       color: Colors.white,
     );
 
@@ -115,10 +118,10 @@ class _VerificationPageState extends State<VerificationPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          icon: const Icon(Icons.arrow_back, color: iJudeNavy),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Voltar para iniciar sessão", 
+        title: const Text("Voltar", 
           style: TextStyle(color: Color(0xFF64748B), fontSize: 14)),
       ),
       body: SingleChildScrollView(
@@ -129,20 +132,20 @@ class _VerificationPageState extends State<VerificationPage> {
             const SizedBox(height: 40),
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.verified_user_outlined, 
                 size: 40, 
-                color: Color(0xFF0F172A)
+                color: iJudeNavy // RESTAURADO: Cor do ícone para Navy [cite: 19]
               ),
             ),
             const SizedBox(height: 32),
             Text(
               "Verifique seu celular",
-              style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+              style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: iJudeNavy),
             ),
             const SizedBox(height: 12),
             Padding(
@@ -155,7 +158,7 @@ class _VerificationPageState extends State<VerificationPage> {
                     const TextSpan(text: "Enviamos um código de 6 dígitos para \n"),
                     TextSpan(
                       text: widget.phone, 
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: iJudeNavy)
                     ),
                   ],
                 ),
@@ -184,7 +187,7 @@ class _VerificationPageState extends State<VerificationPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _verifyCode,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A),
+                  backgroundColor: iJudeNavy,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
                 ),
@@ -200,7 +203,7 @@ class _VerificationPageState extends State<VerificationPage> {
               },
               child: Text(
                 "Não recebeu o código? Reenviar",
-                style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600),
+                style: GoogleFonts.inter(color: iJudeNavy, fontWeight: FontWeight.w600),
               ),
             ),
           ],

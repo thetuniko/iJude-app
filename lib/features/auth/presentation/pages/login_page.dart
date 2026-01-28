@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // Para kIsWeb
+// import 'package:flutter/foundation.dart'; // Não é mais necessário aqui, pois o ApiConfig resolve
 import 'register_page.dart'; 
 import 'main_screen.dart'; 
-import 'verification_page.dart'; // <--- Importante para redirecionar
+import 'verification_page.dart'; 
+import '../../../../core/api_config.dart'; // <--- Importando a configuração central
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,9 +35,8 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    // 2. Define URL (Web vs Android Emulator)
-    final baseUrl = kIsWeb ? 'http://localhost:3000' : 'http://10.0.2.2:3000';
-    final url = Uri.parse('$baseUrl/client/login');
+  
+    final url = Uri.parse('${ApiConfig.baseUrl}/client/login');
 
     try {
       final response = await http.post(

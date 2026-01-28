@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'verification_page.dart';
-import 'package:flutter/foundation.dart';
+import '../../../../core/api_config.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -64,9 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // IMPORTANTE: Use 10.0.2.2 para Emulador Android
-  final baseUrl = kIsWeb ? 'http://localhost:3000' : 'http://10.0.2.2:3000';
-  final url = Uri.parse('$baseUrl/client');
+  final url = Uri.parse('${ApiConfig.baseUrl}/client');
 
     try {
       final response = await http.post(
