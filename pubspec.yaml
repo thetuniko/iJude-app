@@ -23,6 +23,7 @@ dependencies:
   # --- Inputs ---
   mask_text_input_formatter: ^2.9.0
   pinput: ^6.0.1
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_test:

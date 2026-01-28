@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:ijude_app/features/auth/presentation/pages/features/notifications_page.dart';
 import '../../../service_request/presentation/pages/service_options_page.dart';
 import '../../../../shared/models/service_category.dart';
 import '../../../../shared/data/mock_category_repository.dart';
 import '../../../service_request/presentation/pages/category_selection_page.dart';
 import '../../../../shared/widgets/address_selection_sheet.dart';
+import '../../../../core/auth_provider.dart';
 
 class ServiceSelectionPage extends StatefulWidget {
   const ServiceSelectionPage({super.key});
@@ -15,16 +17,10 @@ class ServiceSelectionPage extends StatefulWidget {
 }
 
 class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
-  // 1. Instancia o Repositório
   final MockCategoryRepository categoryRepository = MockCategoryRepository();
-  
-  // Lista de categorias
   late List<ServiceCategory> categories;
-
-  // Categoria selecionada na Home
   String? selectedCategory;
   
-  // Estado do Endereço (Inicial)
   Map<String, String> currentAddress = {
     "label": "Casa",
     "address": "Rua das Flores, 123"
@@ -33,7 +29,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
   @override
   void initState() {
     super.initState();
-    // Carrega as categorias do repositório
     categories = categoryRepository.getCategories();
   }
 
@@ -43,10 +38,17 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     const Color iJudeNavy = Color(0xFF0F172A);
     const Color iJudeRed = Color(0xFFEF4444);
 
+    // 1. RECUPERA O ESTADO DO USUÁRIO
+    final authProvider = Provider.of<AuthProvider>(context);
+    final String fullName = authProvider.user?.name ?? "visitante";
+
+    // 2. LÓGICA PARA EXIBIR APENAS O PRIMEIRO NOME
+    // O split divide a string por espaços e o .first pega o primeiro elemento da lista.
+    final String firstName = fullName.split(' ').first;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       
-      // BOTÃO SOS (Aparece apenas se nenhuma categoria estiver selecionada)
       floatingActionButton: selectedCategory == null ? Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -70,7 +72,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // BARRA SUPERIOR (Refatorada para usar o widget compartilhado)
             _buildCustomAppBar(context),
             
             Expanded(
@@ -80,8 +81,9 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
+                    // 3. SAUDAÇÃO DINÂMICA COM PRIMEIRO NOME
                     Text(
-                      "Olá, visitante!",
+                      "Olá, $firstName!", 
                       style: GoogleFonts.inter(
                         fontSize: 26, fontWeight: FontWeight.w800, color: iJudeNavy
                       ),
@@ -182,7 +184,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
               ),
             ),
 
-            // BOTÃO CONTINUAR (Com Navegação Inteligente)
+            // BOTÃO CONTINUAR
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -195,7 +197,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (selectedCategory != null) {
-                        // 1. Injeta a Etapa 1 no histórico (Invisível)
                         Navigator.push(
                           context,
                           PageRouteBuilder(
@@ -205,7 +206,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                           ),
                         );
 
-                        // 2. Navega para a Etapa 2 (Opções)
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -237,8 +237,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     );
   }
 
-  // --- WIDGETS AUXILIARES ---
-
   Widget _buildCustomAppBar(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -248,7 +246,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
         children: [
           Expanded(
             child: GestureDetector(
-              // AQUI ESTÁ A MUDANÇA: Usa o widget compartilhado
               onTap: () {
                 showAddressSelectionSheet(
                   context: context,
@@ -300,7 +297,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
           ),
           const SizedBox(width: 16),
           
-          // Notificações
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -327,7 +323,6 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     );
   }
 
-  // O MODAL DE SOS CONTINUA AQUI (pois é específico desta lógica de emergência)
   void _showSOSModal(BuildContext context) {
     showModalBottomSheet(
       context: context,

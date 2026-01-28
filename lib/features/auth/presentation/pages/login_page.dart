@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-// import 'package:flutter/foundation.dart'; // Não é mais necessário aqui, pois o ApiConfig resolve
+import 'package:provider/provider.dart'; // <--- Adicionado
 import 'register_page.dart'; 
 import 'main_screen.dart'; 
 import 'verification_page.dart'; 
-import '../../../../core/api_config.dart'; // <--- Importando a configuração central
+import '../../../../core/api_config.dart';
+import '../../../../core/auth_provider.dart'; // <--- Adicionado
+import '../../../../shared/models/user_model.dart'; // <--- Adicionado
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,16 +18,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controladores
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   
   bool _isObscure = true;
   bool _isLoading = false; 
 
-  // --- LÓGICA DE LOGIN INTELIGENTE ---
   Future<void> _login() async {
-    // 1. Validação simples
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Por favor, preencha e-mail e senha.")),
@@ -35,7 +34,6 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-  
     final url = Uri.parse('${ApiConfig.baseUrl}/client/login');
 
     try {
@@ -48,26 +46,29 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
-      // Decodifica a resposta para ler mensagens ou dados extras
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         // --- SUCESSO: LOGIN REALIZADO ---
         if (mounted) {
+          // 1. Criar o modelo do usuário com os dados do backend
+          final user = UserModel.fromJson(responseData);
+
+          // 2. Salvar no AuthProvider (Estado Global)
+          Provider.of<AuthProvider>(context, listen: false).setUser(user);
+
+          // 3. Navegar para a tela principal
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const MainScreen()),
-            (route) => false, // Remove a tela de login da pilha
+            (route) => false,
           );
         }
       } 
-      // --- CASO ESPECIAL: CONTA NÃO VERIFICADA (Erro 403) ---
       else if (response.statusCode == 403 && responseData['needVerification'] == true) {
         if (mounted) {
-          // Pega o telefone que o backend mandou no erro
           final phone = responseData['phone']; 
           
-          // 1. Avisa o usuário
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Conta não verificada. Enviamos um novo código!"),
@@ -76,7 +77,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
 
-          // 2. Redireciona para a tela de Verificação
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -85,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } 
-      // --- OUTROS ERROS (Senha errada, e-mail não existe, etc) ---
       else {
         if (mounted) {
           final errorMessage = responseData['message'] ?? 'Erro ao realizar login';
@@ -108,7 +107,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Widget auxiliar para os campos de texto
   Widget _buildTextField({
     required TextEditingController controller, 
     required String hint, 
@@ -147,33 +145,26 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo iJude
                 Container(
                   height: 100, width: 100,
                   decoration: BoxDecoration(
                     color: Colors.white, shape: BoxShape.circle,
+                    // ignore: deprecated_member_use
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)],
                   ),
                   child: const Center(child: Icon(Icons.handyman_outlined, size: 50, color: Color(0xFF0F172A))),
                 ),
-                
                 const SizedBox(height: 32),
                 Text("Bem-vindo ao iJude", style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
                 const SizedBox(height: 8),
                 Text("Faça login para continuar", style: GoogleFonts.inter(fontSize: 16, color: const Color(0xFF64748B))),
-                
                 const SizedBox(height: 40),
-                
-                // Campo E-mail
                 _buildTextField(
                   controller: _emailController,
                   hint: "seu@email.com",
                   icon: Icons.email_outlined,
                 ),
-
                 const SizedBox(height: 20),
-                
-                // Campo Senha
                 TextField(
                   controller: _passwordController,
                   obscureText: _isObscure,
@@ -199,10 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 12),
-
-                // Esqueci minha senha
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -211,10 +199,7 @@ class _LoginPageState extends State<LoginPage> {
                       style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600)),
                   ),
                 ),
-                
                 const SizedBox(height: 24),
-                
-                // Botão Entrar
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -230,10 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                       : const Text("Entrar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                 ),
-
                 const SizedBox(height: 32),
-                
-                // Divisor "Ou entre com"
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.grey[300])),
@@ -244,10 +226,7 @@ class _LoginPageState extends State<LoginPage> {
                     Expanded(child: Divider(color: Colors.grey[300])),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
-                // Botões Sociais
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -256,10 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                     _socialButton(Icons.apple, "Apple"),
                   ],
                 ),
-
                 const SizedBox(height: 32),
-
-                // Link de Cadastro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
