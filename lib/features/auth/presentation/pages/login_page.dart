@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:provider/provider.dart'; // <--- Adicionado
+import 'package:provider/provider.dart'; // Gerenciamento de estado 
 import 'register_page.dart'; 
-import 'main_screen.dart'; 
 import 'verification_page.dart'; 
-import '../../../../core/api_config.dart';
-import '../../../../core/auth_provider.dart'; // <--- Adicionado
-import '../../../../shared/models/user_model.dart'; // <--- Adicionado
+import 'terms_page.dart'; // Importação para o fluxo de termos
+import '../../../../core/api_config.dart'; // Configuração centralizada 
+import '../../../../core/auth_provider.dart'; // Provedor de autenticação 
+import '../../../../shared/models/user_model.dart'; // Modelo de dados 
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
+    // Usa a URL de produção ou local dependendo do modo 
     final url = Uri.parse('${ApiConfig.baseUrl}/client/login');
 
     try {
@@ -49,24 +50,24 @@ class _LoginPageState extends State<LoginPage> {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // --- SUCESSO: LOGIN REALIZADO ---
         if (mounted) {
-          // 1. Criar o modelo do usuário com os dados do backend
+          // 1. Converte o JSON do backend para o modelo Dart 
           final user = UserModel.fromJson(responseData);
 
-          // 2. Salvar no AuthProvider (Estado Global)
+          // 2. Salva o usuário no estado global para uso na Home 
           Provider.of<AuthProvider>(context, listen: false).setUser(user);
 
-          // 3. Navegar para a tela principal
+          // 3. Direciona para a TermsPage antes da tela principal
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
+            MaterialPageRoute(builder: (context) => const TermsPage()),
             (route) => false,
           );
         }
       } 
       else if (response.statusCode == 403 && responseData['needVerification'] == true) {
         if (mounted) {
+          // Fluxo para contas não verificadas via SMS [cite: 7]
           final phone = responseData['phone']; 
           
           ScaffoldMessenger.of(context).showSnackBar(
@@ -89,10 +90,7 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           final errorMessage = responseData['message'] ?? 'Erro ao realizar login';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
           );
         }
       }
@@ -103,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

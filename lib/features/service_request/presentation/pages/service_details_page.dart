@@ -173,7 +173,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                   currentAddress: currentAddress,
                   onSelected: (newAddress) {
                     setState(() => currentAddress = newAddress);
-                  },
+                  }, addresses: [],
                 );
               },
               child: Container(
