@@ -143,6 +143,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
+                      // ignore: deprecated_member_use
                       color: primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -209,8 +210,10 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        // ignore: deprecated_member_use
         border: Border.all(color: blue.withOpacity(0.5), width: 1.5),
         boxShadow: [
+          // ignore: deprecated_member_use
           BoxShadow(color: blue.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
         ],
       ),
@@ -245,6 +248,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: isSelected ? navy : Colors.transparent, width: 2),
               boxShadow: [
+                // ignore: deprecated_member_use
                 BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
               ],
             ),
@@ -254,6 +258,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
+                    // ignore: deprecated_member_use
                     color: cat.color.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
@@ -274,6 +279,7 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        // ignore: deprecated_member_use
         boxShadow: [BoxShadow(color: red.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
       ),
       child: FloatingActionButton(

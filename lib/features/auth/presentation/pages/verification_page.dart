@@ -3,12 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart'; // <--- IMPORTANTE: Gerenciamento de estado
 
 import 'terms_page.dart'; 
 import '../../../../core/api_config.dart';
+import '../../../../core/auth_provider.dart'; // <--- IMPORTANTE: Provedor de autenticação
+import '../../../../shared/models/user_model.dart'; // <--- IMPORTANTE: Modelo do usuário
 
 class VerificationPage extends StatefulWidget {
-  final String email; // ALTERADO: De phone para email
+  final String email;
 
   const VerificationPage({super.key, required this.email});
 
@@ -37,13 +40,21 @@ class _VerificationPageState extends State<VerificationPage> {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': widget.email, // ENVIANDO: email em vez de phone
+          'email': widget.email,
           'code': _pinController.text,
         }),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         if (mounted) {
+          // 1. Decodifica os dados do usuário retornados pelo backend
+          final responseData = jsonDecode(response.body);
+          final user = UserModel.fromJson(responseData);
+
+          // 2. SALVA O USUÁRIO NO ESTADO GLOBAL
+          // Isso garante que o app reconheça o login imediatamente
+          Provider.of<AuthProvider>(context, listen: false).setUser(user);
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("E-mail verificado com sucesso!"), 
@@ -55,6 +66,7 @@ class _VerificationPageState extends State<VerificationPage> {
           await Future.delayed(const Duration(seconds: 1)); 
           
           if (mounted) {
+            // 3. Direciona para os termos já estando logado
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const TermsPage()),
@@ -131,14 +143,14 @@ class _VerificationPageState extends State<VerificationPage> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.mark_email_read_outlined, // ÍCONE: Atualizado para E-mail
+                Icons.mark_email_read_outlined,
                 size: 40, 
                 color: iJudeNavy 
               ),
             ),
             const SizedBox(height: 32),
             Text(
-              "Verifique seu e-mail", // TEXTO: Atualizado
+              "Verifique seu e-mail",
               style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: iJudeNavy),
             ),
             const SizedBox(height: 12),
@@ -151,7 +163,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   children: [
                     const TextSpan(text: "Enviamos um código de 6 dígitos para \n"),
                     TextSpan(
-                      text: widget.email, // MOSTRANDO: O e-mail informado
+                      text: widget.email, 
                       style: const TextStyle(fontWeight: FontWeight.bold, color: iJudeNavy)
                     ),
                   ],

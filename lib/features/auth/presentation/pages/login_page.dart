@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart'; 
 import 'register_page.dart'; 
 import 'verification_page.dart'; 
-import 'terms_page.dart'; 
+import 'main_screen.dart'; // <--- Importação essencial para o fluxo
 import '../../../../core/api_config.dart'; 
 import '../../../../core/auth_provider.dart'; 
 import '../../../../shared/models/user_model.dart'; 
@@ -53,17 +53,18 @@ class _LoginPageState extends State<LoginPage> {
           final user = UserModel.fromJson(responseData);
           Provider.of<AuthProvider>(context, listen: false).setUser(user);
 
+          // ATUALIZAÇÃO: Navegação direta para a MainScreen.
+          // A MainScreen agora é o único "guarda" que decide se o usuário 
+          // deve ver a página de termos ou não. Isso evita conflitos de rota.
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const TermsPage()),
+            MaterialPageRoute(builder: (context) => const MainScreen()),
             (route) => false,
           );
         }
       } 
-      // CORREÇÃO: Fluxo de verificação ajustado para E-mail
       else if (response.statusCode == 403 && responseData['needVerification'] == true) {
         if (mounted) {
-          // Captura o e-mail do response ou do próprio campo preenchido
           final String targetEmail = responseData['email'] ?? _emailController.text.trim(); 
           
           if (targetEmail.isEmpty) {
@@ -81,7 +82,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
 
-          // Navega para a VerificationPage passando o e-mail (evita erro null)
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -156,6 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 100, width: 100,
                   decoration: BoxDecoration(
                     color: Colors.white, shape: BoxShape.circle,
+                    // ignore: deprecated_member_use
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)],
                   ),
                   child: const Center(child: Icon(Icons.handyman_outlined, size: 50, color: iJudeNavy)),
@@ -205,7 +206,9 @@ class _LoginPageState extends State<LoginPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Lógica de recuperação de senha futuramente
+                    },
                     child: Text("Esqueceu a senha?", 
                       style: GoogleFonts.inter(color: iJudeNavy, fontWeight: FontWeight.w600)),
                   ),
@@ -251,5 +254,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
 }
