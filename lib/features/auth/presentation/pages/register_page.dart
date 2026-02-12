@@ -83,7 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (response.statusCode == 201) {
         if (mounted) {
           Navigator.push(context, MaterialPageRoute(
-            builder: (_) => VerificationPage(phone: _phoneController.text)
+            builder: (_) => VerificationPage(email: _emailController.text)
           ));
         }
       } else {

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:provider/provider.dart'; // Gerenciamento de estado 
+import 'package:provider/provider.dart'; 
 import 'register_page.dart'; 
 import 'verification_page.dart'; 
-import 'terms_page.dart'; // Importação para o fluxo de termos
-import '../../../../core/api_config.dart'; // Configuração centralizada 
-import '../../../../core/auth_provider.dart'; // Provedor de autenticação 
-import '../../../../shared/models/user_model.dart'; // Modelo de dados 
+import 'terms_page.dart'; 
+import '../../../../core/api_config.dart'; 
+import '../../../../core/auth_provider.dart'; 
+import '../../../../shared/models/user_model.dart'; 
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,7 +34,6 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    // Usa a URL de produção ou local dependendo do modo 
     final url = Uri.parse('${ApiConfig.baseUrl}/client/login');
 
     try {
@@ -51,13 +50,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (mounted) {
-          // 1. Converte o JSON do backend para o modelo Dart 
           final user = UserModel.fromJson(responseData);
-
-          // 2. Salva o usuário no estado global para uso na Home 
           Provider.of<AuthProvider>(context, listen: false).setUser(user);
 
-          // 3. Direciona para a TermsPage antes da tela principal
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const TermsPage()),
@@ -65,23 +60,32 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } 
+      // CORREÇÃO: Fluxo de verificação ajustado para E-mail
       else if (response.statusCode == 403 && responseData['needVerification'] == true) {
         if (mounted) {
-          // Fluxo para contas não verificadas via SMS [cite: 7]
-          final phone = responseData['phone']; 
+          // Captura o e-mail do response ou do próprio campo preenchido
+          final String targetEmail = responseData['email'] ?? _emailController.text.trim(); 
           
+          if (targetEmail.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("E-mail não identificado para verificação."), backgroundColor: Colors.red),
+            );
+            return;
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Conta não verificada. Enviamos um novo código!"),
+              content: Text("Conta não verificada. Enviamos um código para seu e-mail!"),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 3),
             ),
           );
 
+          // Navega para a VerificationPage passando o e-mail (evita erro null)
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VerificationPage(phone: phone),
+              builder: (context) => VerificationPage(email: targetEmail),
             ),
           );
         }
@@ -105,6 +109,8 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // --- UI COMPONENTS ---
+
   Widget _buildTextField({
     required TextEditingController controller, 
     required String hint, 
@@ -112,6 +118,7 @@ class _LoginPageState extends State<LoginPage> {
   }) {
     return TextField(
       controller: controller,
+      keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
@@ -134,6 +141,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    const Color iJudeNavy = Color(0xFF0F172A);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -147,22 +156,26 @@ class _LoginPageState extends State<LoginPage> {
                   height: 100, width: 100,
                   decoration: BoxDecoration(
                     color: Colors.white, shape: BoxShape.circle,
-                    // ignore: deprecated_member_use
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)],
                   ),
-                  child: const Center(child: Icon(Icons.handyman_outlined, size: 50, color: Color(0xFF0F172A))),
+                  child: const Center(child: Icon(Icons.handyman_outlined, size: 50, color: iJudeNavy)),
                 ),
                 const SizedBox(height: 32),
-                Text("Bem-vindo ao iJude", style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
+                Text("Bem-vindo ao iJude", 
+                  style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: iJudeNavy)),
                 const SizedBox(height: 8),
-                Text("Faça login para continuar", style: GoogleFonts.inter(fontSize: 16, color: const Color(0xFF64748B))),
+                Text("Faça login para continuar", 
+                  style: GoogleFonts.inter(fontSize: 16, color: const Color(0xFF64748B))),
                 const SizedBox(height: 40),
+                
                 _buildTextField(
                   controller: _emailController,
                   hint: "seu@email.com",
                   icon: Icons.email_outlined,
                 ),
+                
                 const SizedBox(height: 20),
+                
                 TextField(
                   controller: _passwordController,
                   obscureText: _isObscure,
@@ -172,7 +185,6 @@ class _LoginPageState extends State<LoginPage> {
                     prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF64748B)),
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12), 
@@ -180,7 +192,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF0F172A), width: 1.5),
+                      borderSide: const BorderSide(color: iJudeNavy, width: 1.5),
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility, color: const Color(0xFF64748B)),
@@ -188,23 +200,26 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+                
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {},
                     child: Text("Esqueceu a senha?", 
-                      style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                      style: GoogleFonts.inter(color: iJudeNavy, fontWeight: FontWeight.w600)),
                   ),
                 ),
+                
                 const SizedBox(height: 24),
+                
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F172A),
+                      backgroundColor: iJudeNavy,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
@@ -213,27 +228,9 @@ class _LoginPageState extends State<LoginPage> {
                       : const Text("Entrar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                 ),
+                
                 const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text("Ou entre com", style: TextStyle(color: Colors.grey[500], fontSize: 14)),
-                    ),
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _socialButton(Icons.g_mobiledata, "Google"),
-                    const SizedBox(width: 16),
-                    _socialButton(Icons.apple, "Apple"),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -242,7 +239,8 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage()));
                       },
-                      child: const Text("Cadastre-se", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                      child: const Text("Cadastre-se", 
+                        style: TextStyle(fontWeight: FontWeight.bold, color: iJudeNavy)),
                     ),
                   ],
                 ),
@@ -254,26 +252,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _socialButton(IconData icon, String label) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Falta implementar")));
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 24),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
-  }
 }

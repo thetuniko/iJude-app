@@ -4,13 +4,13 @@ import 'package:pinput/pinput.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'terms_page.dart'; // <--- Importação necessária para o novo fluxo
-import '../../../../core/api_config.dart'; // <--- Configuração de API central [cite: 13]
+import 'terms_page.dart'; 
+import '../../../../core/api_config.dart';
 
 class VerificationPage extends StatefulWidget {
-  final String phone;
+  final String email; // ALTERADO: De phone para email
 
-  const VerificationPage({super.key, required this.phone});
+  const VerificationPage({super.key, required this.email});
 
   @override
   State<VerificationPage> createState() => _VerificationPageState();
@@ -30,18 +30,14 @@ class _VerificationPageState extends State<VerificationPage> {
 
     setState(() => _isLoading = true);
 
-    // Endpoint de verificação configurado no ApiConfig [cite: 13, 21]
     final url = Uri.parse('${ApiConfig.baseUrl}/client/verify');
     
-    // Limpeza de caracteres não numéricos do telefone [cite: 72]
-    final cleanPhone = widget.phone.replaceAll(RegExp(r'[^0-9]'), '');
-
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'phone': cleanPhone,
+          'email': widget.email, // ENVIANDO: email em vez de phone
           'code': _pinController.text,
         }),
       );
@@ -50,7 +46,7 @@ class _VerificationPageState extends State<VerificationPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Conta verificada com sucesso!"), 
+              content: Text("E-mail verificado com sucesso!"), 
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
@@ -59,11 +55,10 @@ class _VerificationPageState extends State<VerificationPage> {
           await Future.delayed(const Duration(seconds: 1)); 
           
           if (mounted) {
-            // CORREÇÃO DE FLUXO: Agora redireciona para a TermsPage 
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const TermsPage()),
-              (route) => false, // Impede o usuário de voltar para esta tela
+              (route) => false,
             );
           }
         }
@@ -93,7 +88,6 @@ class _VerificationPageState extends State<VerificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Definição da cor primária do projeto iJude [cite: 19]
     const Color iJudeNavy = Color(0xFF0F172A);
 
     final defaultPinTheme = PinTheme(
@@ -137,14 +131,14 @@ class _VerificationPageState extends State<VerificationPage> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.verified_user_outlined, 
+                Icons.mark_email_read_outlined, // ÍCONE: Atualizado para E-mail
                 size: 40, 
-                color: iJudeNavy // RESTAURADO: Cor do ícone para Navy [cite: 19]
+                color: iJudeNavy 
               ),
             ),
             const SizedBox(height: 32),
             Text(
-              "Verifique seu celular",
+              "Verifique seu e-mail", // TEXTO: Atualizado
               style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: iJudeNavy),
             ),
             const SizedBox(height: 12),
@@ -157,7 +151,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   children: [
                     const TextSpan(text: "Enviamos um código de 6 dígitos para \n"),
                     TextSpan(
-                      text: widget.phone, 
+                      text: widget.email, // MOSTRANDO: O e-mail informado
                       style: const TextStyle(fontWeight: FontWeight.bold, color: iJudeNavy)
                     ),
                   ],
@@ -176,7 +170,7 @@ class _VerificationPageState extends State<VerificationPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              "Insira o código de verificação enviado para o seu celular.",
+              "Insira o código de verificação enviado para o seu e-mail.",
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF94A3B8)),
             ),
@@ -193,7 +187,7 @@ class _VerificationPageState extends State<VerificationPage> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Verificar celular", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    : const Text("Verificar e-mail", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 24),
